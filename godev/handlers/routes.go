@@ -7,12 +7,15 @@ import (
 )
 
 
-func RegistrarRotas(router *mux.Router, db *sql.DB) {
+func RegistrarRotas(router *mux.Router, conn *sql.DB) {
       
 	h := &Handler{
-	  DB: db,
+	  DB: conn,
 	}
-	router.HandleFunc("/aluno/resgistrar", h.InsereAluno)
-	router.HandleFunc("/aluno/criar", h.CriaAluno)
-	router.HandleFunc("/aluno/buscar", h.BuscaAluno)
+	router.HandleFunc("/aluno", h.InsereAluno).Methods("POST")
+	router.HandleFunc("/aluno", h.AtualizaAluno).Methods("PUT")
+	router.HandleFunc("/aluno", h.BuscaAluno).Methods("GET")
+	router.HandleFunc("/curso", h.InsereCurso).Methods("POST")
+	router.HandleFunc("/curso", h.AtualizaCurso).Methods("PUT")
+	router.HandleFunc("/curso", h.BuscaCurso).Methods("GET")
   }
