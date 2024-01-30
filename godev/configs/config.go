@@ -1,15 +1,12 @@
 package configs
 
 import (
-	"encoding/json"
-	"net/http"
-
 	"github.com/spf13/viper"
 )
 
-var conf *config
 
-type config struct {
+
+type Config struct {
 	API APIConfig
 	DB DBConfig
 }
@@ -33,7 +30,9 @@ func init() {
 	viper.SetDefault("database.port", "5432")
 }
 
-func Carrega() error {
+func Carrega() (Config, error) {
+
+	var conf *Config
 	viper.SetConfigName("config")
 	viper.SetConfigType("toml")
 	viper.AddConfigPath(".")
@@ -41,11 +40,11 @@ func Carrega() error {
 	err := viper.ReadInConfig()
 	if err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			return err
+			return *conf, err
 		}
 	}
 
-	conf = new(config)
+	conf = new(Config)
 
 	conf.API = APIConfig{
 		Porta: viper.GetString("api.port"),
@@ -60,28 +59,7 @@ func Carrega() error {
 		BancoDados: viper.GetString("database.nome"),
 	}
 
-	return nil
+	return *conf, nil
 }
-
-func GetDB() DBConfig {
-	return conf.DB
-}
-
-func GetServerPort() string {
-	return conf.API.Porta
-}
-
-
-func RespondWithError(w http.ResponseWriter, code, errorCode int, message string) {
-	RespondWithJSON(w, code, map[string]interface{}{"error": message, "code": errorCode})
-}
-
-func RespondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
-	response, _ := json.Marshal(payload)
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	w.Write(response)
-}
-
 
 

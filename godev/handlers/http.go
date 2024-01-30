@@ -1,19 +1,26 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
-	"godev/configs"
 	"godev/model"
+	"godev/utils"
 	"io"
 	"net/http"
 	"strconv"
 )
 
-func CriaAluno(w http.ResponseWriter, r *http.Request) {
+type Handler struct {
+	DB *sql.DB
+}
+
+
+
+func (h *Handler) CriaAluno(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodPost {
-		configs.RespondWithError(w, http.StatusMethodNotAllowed, 0, "Metodo incorreto")
+		utils.RespondWithError(w, http.StatusMethodNotAllowed, 0, "Metodo incorreto")
 		return
 	}
 
@@ -22,42 +29,27 @@ func CriaAluno(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 
-		configs.RespondWithError(w, http.StatusBadRequest, 0, "Erro ao receber o body de Transaction")
+		utils.RespondWithError(w, http.StatusBadRequest, 0, "Erro ao receber o body de Transaction")
 		return
 	}
 
 	err = json.Unmarshal(body, req)
 	if err != nil {
-		configs.RespondWithError(w, http.StatusBadRequest, 0, "Erro ao realizar o unmarshal")
+		utils.RespondWithError(w, http.StatusBadRequest, 0, "Erro ao realizar o unmarshal")
 	}
 
-	if err := model.InsereAluno(req); err != nil {
-		configs.RespondWithError(w, http.StatusBadRequest, 0, "Erro ao criar user ")
+	if err := model.InsereAluno(h.DB, req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, 0, "Erro ao criar user ")
 		return
 	}
 
-	configs.RespondWithJSON(w, http.StatusOK, "OK")
+	utils.RespondWithJSON(w, http.StatusOK, "OK")
 	return
 
 }
 
-func AlunoHandler(w http.ResponseWriter, r *http.Request) {
 
-	if r.Method == http.MethodGet {
-		BuscaAluno(w, r)
-		return
-	}
-
-	if r.Method == http.MethodPost {
-		InsereAluno(w, r)
-		return
-	}
-
-	fmt.Errorf("Erro metodo")
-	return
-}
-
-func InsereAluno(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) InsereAluno(w http.ResponseWriter, r *http.Request) {
 	
 
 	var a = &model.Aluno{}
@@ -73,19 +65,19 @@ func InsereAluno(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = model.InsereAluno(a)
+	err = model.InsereAluno(h.DB, a)
 	if err != nil {
 		fmt.Errorf("Falha ao inserir aluno: %v", err)
 		return
 	}
 
-	configs.RespondWithJSON(w, http.StatusOK, "OK")
+	utils.RespondWithJSON(w, http.StatusOK, "OK")
 	return
 
 }
 
 
-func BuscaAluno(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) BuscaAluno(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		id   int64
@@ -101,14 +93,14 @@ func BuscaAluno(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	aluno, err := model.BuscaAluno(id)
+	aluno, err := model.BuscaAluno(h.DB, id)
 	if err != nil {
 		fmt.Errorf("Erro buscar Aluno")
 		return
 	}
 
 
-	configs.RespondWithJSON(w, http.StatusOK, aluno)
+	utils.RespondWithJSON(w, http.StatusOK, aluno)
 	return
 
 }

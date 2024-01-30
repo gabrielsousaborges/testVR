@@ -2,6 +2,7 @@ package main
 
 import (
 	"godev/configs"
+	"godev/db"
 	"godev/handlers"
 
 	"github.com/gorilla/mux"
@@ -9,14 +10,19 @@ import (
 
 
 func main() {
-	err := configs.Carrega()
+	confi, err := configs.Carrega()
 	if err != nil {
 		panic(err)
 	}
 
-	router := mux.NewRouter()
-	 
-	router.HandleFunc("/aluno/resgistrar", handlers.InsereAluno)
 
+	db, err := db.AbreConexao(confi.DB)
+    if err != nil {
+      panic(err)
+    }
+
+	router := mux.NewRouter()
+
+ 	handlers.RegistrarRotas(router, db)
 	
 }
